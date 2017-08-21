@@ -39,7 +39,7 @@ class SqlElasticSearchQueryConverter
                 if (is_array($subquery)) {
                     $parts[] = $this->makeEsQuery($subquery);
                 } else {
-                    $parts[] = ['match' => $subquery];
+                    $parts[] = [$this->getMatchType($subquery) => $this->cleanKeyword($subquery)];
                 }
             }
 
@@ -125,5 +125,26 @@ class SqlElasticSearchQueryConverter
         }
 
         return $parsedQuery;
+    }
+
+    private function isExactMatchSearch($string)
+    {
+        return substr($string, 0, 1) == '"' && substr($string, -1) == '"';
+    }
+
+    private function getMatchType($keyword)
+    {
+        if ($this->isExactMatchSearch($keyword)) {
+            return "match_phrase";
+        }
+        return "match";
+    }
+
+    private function cleanKeyword($keyword)
+    {
+        if ($this->isExactMatchSearch($keyword)) {
+            return trim(trim($keyword, '"'));
+        }
+        return trim($keyword);
     }
 }

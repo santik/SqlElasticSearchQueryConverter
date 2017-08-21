@@ -10,7 +10,7 @@ Converts AND OR SQL like query to Elastic Search query
 TO
 
 `
-{"bool":{"must":[{"bool":{"must":[{"bool":{"should":[{"bool":{"should":[{"match":"query1 query 2"},{"match":"query3"}]}},{"match":"query4"}]}},{"bool":{"should":[{"match":"query5"},{"match":"query6"}]}}]}},{"match":"query7"}]}}s
+{"bool":{"must":[{"bool":{"must":[{"bool":{"should":[{"bool":{"should":[{"match_phrase":"query1 query 2"},{"match":"query3"}]}},{"match":"query4"}]}},{"bool":{"should":[{"match":"query5"},{"match":"query6"}]}}]}},{"match":"query7"}]}}
 `
 
 
