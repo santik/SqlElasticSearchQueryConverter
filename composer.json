@@ -1,0 +1,21 @@
+{
+    "name": "santik/sql-elasticsearch-query-converter",
+    "description": "Library for converting AND OR SQL like query to Elastic Search query",
+    "license": "proprietary",
+    "authors": [
+        {
+            "name": "Alexander Fedortets",
+            "email": "fedorets.alex@gmail.com"
+        }
+    ],
+    "minimum-stability": "stable",
+    "require": {
+        "php": "^7.0",
+        "ramsey/uuid": "^3.7"
+    },
+    "autoload": {
+        "psr-4": {
+            "Santik\\SqlElasticSearchQueryConverter\\": ["src/"]
+        }
+    }
+}
