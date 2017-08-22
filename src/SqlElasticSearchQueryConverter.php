@@ -12,14 +12,14 @@ class SqlElasticSearchQueryConverter
     private function __construct(){}
 
 
-    public static function convert(string $query):string
+    public static function convert(string $query, string $field):string
     {
         $convert = new SqlElasticSearchQueryConverter();
-        return $convert->parse($query);
+        return $convert->parse($query, $field);
     }
 
 
-    public function parse(string $query): string
+    public function parse(string $query, string $field): string
     {
         $this->checkQueryNumberOfParentheses($query);
 
@@ -32,19 +32,19 @@ class SqlElasticSearchQueryConverter
             $parsedQuery = ['OR' => [$parsedQuery, $parsedQuery]];
         }
 
-        return json_encode($this->makeEsQuery($parsedQuery));
+        return json_encode($this->makeEsQuery($parsedQuery, $field));
     }
 
 
-    private function makeEsQuery(array $parsedSQLQuery): array
+    private function makeEsQuery(array $parsedSQLQuery, string $field): array
     {
         $parts = [];
         foreach ($parsedSQLQuery as $operator => $subqueries) {
             foreach ($subqueries as $subquery) {
                 if (is_array($subquery)) {
-                    $parts[] = $this->makeEsQuery($subquery);
+                    $parts[] = $this->makeEsQuery($subquery, $field);
                 } else {
-                    $parts[] = [$this->getMatchType($subquery) => $this->cleanKeyword($subquery)];
+                    $parts[] = [$this->getMatchType($subquery) => [$field => $this->cleanKeyword($subquery)]];
                 }
             }
 
