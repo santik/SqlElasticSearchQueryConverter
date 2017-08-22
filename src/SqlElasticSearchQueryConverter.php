@@ -27,6 +27,11 @@ class SqlElasticSearchQueryConverter
             $this->parseParentheses($query)
         );
 
+        //todo make single query less ugly
+        if (!is_array($parsedQuery)) {
+            $parsedQuery = ['OR' => [$parsedQuery, $parsedQuery]];
+        }
+
         return json_encode($this->makeEsQuery($parsedQuery));
     }
 
