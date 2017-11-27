@@ -6,7 +6,7 @@ use Ramsey\Uuid\Uuid;
 
 class SqlElasticSearchQueryConverter
 {
-    private $operators = ['AND', 'OR'];
+    private $operators = [' AND ', ' OR '];
     private $parts = [];
 
     private function __construct(){}
