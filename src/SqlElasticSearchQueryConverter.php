@@ -6,8 +6,13 @@ use Ramsey\Uuid\Uuid;
 
 class SqlElasticSearchQueryConverter
 {
-    private $operators = [' AND ', ' OR '];
+
+    const AND_OPERATOR = ' AND ';
+    const OR_OPERATOR = ' OR ';
+
+    private $operators = [self::AND_OPERATOR, self::OR_OPERATOR];
     private $parts = [];
+
 
     private function __construct(){}
 
@@ -21,15 +26,17 @@ class SqlElasticSearchQueryConverter
 
     public function parse(string $query, string $field): string
     {
+        $this->parts = [];
+
         $this->checkQueryNumberOfParentheses($query);
 
-        $parsedQuery = $this->proccessOperators(
+        $parsedQuery = $this->processOperators(
             $this->parseParentheses($query)
         );
 
         //todo make single query less ugly
         if (!is_array($parsedQuery)) {
-            $parsedQuery = ['OR' => [$parsedQuery, $parsedQuery]];
+            $parsedQuery = [self::OR_OPERATOR => [$parsedQuery, $parsedQuery]];
         }
 
         return json_encode($this->makeEsQuery($parsedQuery, $field));
@@ -39,16 +46,16 @@ class SqlElasticSearchQueryConverter
     private function makeEsQuery(array $parsedSQLQuery, string $field): array
     {
         $parts = [];
-        foreach ($parsedSQLQuery as $operator => $subqueries) {
-            foreach ($subqueries as $subquery) {
-                if (is_array($subquery)) {
-                    $parts[] = $this->makeEsQuery($subquery, $field);
+        foreach ($parsedSQLQuery as $operator => $subQueries) {
+            foreach ($subQueries as $subQuery) {
+                if (is_array($subQuery)) {
+                    $parts[] = $this->makeEsQuery($subQuery, $field);
                 } else {
-                    $parts[] = [$this->getMatchType($subquery) => [$field => $this->cleanKeyword($subquery)]];
+                    $parts[] = [$this->getMatchType($subQuery) => [$field => $this->cleanKeyword($subQuery)]];
                 }
             }
 
-            if ($operator == 'AND') {
+            if ($operator == self::AND_OPERATOR) {
                 $esOperator = 'must';
             } else {
                 $esOperator = 'should';
@@ -89,7 +96,7 @@ class SqlElasticSearchQueryConverter
     }
 
 
-    private function proccessOperators(string $parsedQuery)
+    private function processOperators(string $parsedQuery)
     {
         $operatedString = $this->extractOperatedString($parsedQuery);
         $hasOperator = false;
@@ -112,7 +119,7 @@ class SqlElasticSearchQueryConverter
         }
 
         foreach ($queryStructured[$operator] as $i => $part) {
-            $processed = $this->proccessOperators(trim($part));
+            $processed = $this->processOperators(trim($part));
             $queryStructured[$operator][$i] = $processed;
         }
 
@@ -132,12 +139,12 @@ class SqlElasticSearchQueryConverter
         return $parsedQuery;
     }
 
-    private function isExactMatchSearch($string)
+    private function isExactMatchSearch(string $string): string
     {
         return substr($string, 0, 1) == '"' && substr($string, -1) == '"';
     }
 
-    private function getMatchType($keyword)
+    private function getMatchType(string $keyword): string
     {
         if ($this->isExactMatchSearch($keyword)) {
             return "match_phrase";
@@ -145,7 +152,7 @@ class SqlElasticSearchQueryConverter
         return "match";
     }
 
-    private function cleanKeyword($keyword)
+    private function cleanKeyword(string $keyword): string
     {
         if ($this->isExactMatchSearch($keyword)) {
             return trim(trim($keyword, '"'));
